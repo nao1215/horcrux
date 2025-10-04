@@ -1,0 +1,61 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '00:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 10
+    target-branch: 'develop'
+    labels:
+      - 'dependencies'
+      - 'npm'
+      - 'automated'
+    assignees:
+      - 'nao1215'
+    reviewers:
+      - 'nao1215'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      libraries:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+
+  # GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '00:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 5
+    target-branch: 'develop'
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+      - 'automated'
+    assignees:
+      - 'nao1215'
+    reviewers:
+      - 'nao1215'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'
+    groups:
+      actions:
+        patterns:
+          - '*'

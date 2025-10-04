@@ -1,0 +1,63 @@
+{
+  "name": "@nao1215/horcrux",
+  "version": "0.0.1",
+  "description": "A TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "format:check": "prettier --check \"src/**/*.ts\" test/react-native-adapter.test.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm run test",
+    "test:react-native": "jest --runTestsByPath test/react-native-adapter.test.ts"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nao1215/horcrux.git"
+  },
+  "keywords": [
+    "horcrux",
+    "file-splitting",
+    "shamir-secret-sharing",
+    "encryption",
+    "typescript",
+    "nodejs",
+    "react-native",
+    "backup",
+    "crypto"
+  ],
+  "author": "Naohiro CHIKAMATSU <n.chika156@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nao1215/horcrux/issues"
+  },
+  "homepage": "https://github.com/nao1215/horcrux#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.6.2",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.4",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "stream": "^0.0.3"
+  }
+}
