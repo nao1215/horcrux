@@ -19,14 +19,14 @@ If you have a file you want to keep secret, you can split it with Horcrux and hi
 ## Installation
 
 ```bash
-npm install @nao1215/horcruxn
+npm install @nao1215/horcrux
 ```
 
 ## Quick Start
 
 ```typescript
-import { split, bind, nodeAdapter } from '@nao1215/horcruxn';
-import { saveHorcruxes } from '@nao1215/horcruxn/core/split';
+import { split, bind, nodeAdapter } from '@nao1215/horcrux';
+import { saveHorcruxes } from '@nao1215/horcrux/core/split';
 
 // Split a file into 5 pieces, need 3 to restore
 const result = await split('secret.pdf', 5, 3);
@@ -68,8 +68,8 @@ await bind(['horcrux1.horcrux', 'horcrux2.horcrux', 'horcrux3.horcrux'], 'restor
 #### Buffer Operations
 
 ```typescript
-import { splitBuffer } from '@nao1215/horcruxn';
-import { bindHorcruxes } from '@nao1215/horcruxn/core/bind';
+import { splitBuffer } from '@nao1215/horcrux';
+import { bindHorcruxes } from '@nao1215/horcrux/core/bind';
 
 // Split in-memory data
 const data = Buffer.from('Secret message');
@@ -86,7 +86,7 @@ console.log(restored.data.toString()); // 'Secret message'
 #### Custom Platform Adapters
 
 ```typescript
-import { splitFile, nodeAdapter } from '@nao1215/horcruxn';
+import { splitFile, nodeAdapter } from '@nao1215/horcrux';
 
 // Use specific adapter
 const result = await splitFile('file.txt', {
@@ -98,7 +98,7 @@ const result = await splitFile('file.txt', {
 #### Auto-Discovery
 
 ```typescript
-import { autoBind, nodeAdapter } from '@nao1215/horcruxn';
+import { autoBind, nodeAdapter } from '@nao1215/horcrux';
 
 // Automatically find and restore horcruxes from a directory
 const result = await autoBind('./horcrux_directory', nodeAdapter);
@@ -121,7 +121,7 @@ npm install expo-crypto expo-file-system
 Then configure:
 
 ```typescript
-import { configureReactNative } from '@nao1215/horcruxn/adapters/react-native';
+import { configureReactNative } from '@nao1215/horcrux/adapters/react-native';
 import RNFS from 'react-native-fs';
 import Crypto from 'react-native-crypto';
 
