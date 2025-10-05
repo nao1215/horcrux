@@ -1,6 +1,6 @@
 {
   "name": "@nao1215/horcrux",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
