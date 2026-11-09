@@ -1,15 +1,15 @@
+# Version updates arrive once a month, one pull request per ecosystem.
+# Each group applies to version updates only. Security updates are switched on
+# in the repository settings, not here; where they are on, Dependabot opens
+# them as advisories appear, outside this schedule and these groups.
 version: 2
 updates:
   # npm dependencies
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '00:00'
-      timezone: 'Asia/Tokyo'
+      interval: 'monthly'
     open-pull-requests-limit: 10
-    target-branch: 'develop'
     labels:
       - 'dependencies'
       - 'npm'
@@ -22,12 +22,10 @@ updates:
       prefix: 'chore'
       include: 'scope'
     groups:
-      libraries:
+      npm:
+        applies-to: version-updates
         patterns:
           - '*'
-        update-types:
-          - 'minor'
-          - 'patch'
     ignore:
       - dependency-name: 'react'
         update-types: ['version-update:semver-major']
@@ -38,12 +36,8 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '00:00'
-      timezone: 'Asia/Tokyo'
+      interval: 'monthly'
     open-pull-requests-limit: 5
-    target-branch: 'develop'
     labels:
       - 'dependencies'
       - 'github-actions'
@@ -56,6 +50,7 @@ updates:
       prefix: 'ci'
       include: 'scope'
     groups:
-      actions:
+      github-actions:
+        applies-to: version-updates
         patterns:
           - '*'
