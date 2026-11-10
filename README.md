@@ -2,6 +2,8 @@
 
 ![logo](./doc/img/horcrux-small.png)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/horcrux/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/horcrux)
+
 Horcrux is TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter. Split your files into multiple pieces where only a subset is needed to restore the original - no password required!!
 
 If you have a file you want to keep secret, you can split it with Horcrux and hide the horcruxes so that only you can restore the original file. Horcrux works on both Node.js and React Native platforms.
