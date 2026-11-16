@@ -3,6 +3,7 @@
 ![logo](./doc/img/horcrux-small.png)
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/horcrux/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/horcrux)
+[![Trivy](https://github.com/nao1215/horcrux/actions/workflows/trivy.yml/badge.svg)](https://github.com/nao1215/horcrux/actions/workflows/trivy.yml)
 
 Horcrux is TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter. Split your files into multiple pieces where only a subset is needed to restore the original - no password required!!
 
