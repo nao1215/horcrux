@@ -172,6 +172,40 @@ describe('Horcrux Integration Tests', () => {
       const restoredData = await readFile(outputFile);
       expect(restoredData).toEqual(testData);
     });
+
+    // Space-efficient mode splits the cipher text across the shards. Sizes
+    // around the old 100-byte round-robin quota and the per-shard chunk size
+    // are where a layout mismatch between split and bind shows up.
+    it.each([1, 99, 100, 101, 299, 300, 301, 1000, 64 * 1024 + 7])(
+      'restores a %i-byte file split with threshold equal to total',
+      async (size) => {
+        const testFile = path.join(tempDir, 'all-required.bin');
+        const testData = crypto.randomBytes(size);
+        await writeFile(testFile, testData);
+
+        const splitResult = await splitFile(testFile, { total: 3, threshold: 3 }, nodeAdapter);
+        const savedPaths = await saveHorcruxes(splitResult.horcruxes, tempDir, nodeAdapter);
+
+        const outputFile = path.join(tempDir, 'all-required.restored');
+        await bindFiles(savedPaths, outputFile, nodeAdapter);
+
+        // A boolean keeps a mismatch report short for the large sizes.
+        expect((await readFile(outputFile)).equals(testData)).toBe(true);
+      }
+    );
+
+    it('stores the same shard sizes for a file and for the same bytes in a buffer', async () => {
+      const testFile = path.join(tempDir, 'same.bin');
+      const testData = crypto.randomBytes(1000);
+      await writeFile(testFile, testData);
+
+      const fromFile = await splitFile(testFile, { total: 4, threshold: 4 }, nodeAdapter);
+      const fromBuffer = await splitBuffer(testData, 'same.bin', { total: 4, threshold: 4 });
+
+      expect(fromFile.horcruxes.map((h) => h.content.length)).toEqual(
+        fromBuffer.horcruxes.map((h) => h.content.length)
+      );
+    });
   });
 
   describe('Auto-bind functionality', () => {
