@@ -10,9 +10,11 @@ on:
     branches:
       - '**'
 
+# A newer push to the same pull request cancels the older run. Pushes to main and
+# manual runs get a group of their own, so they never cancel each other.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -59,6 +61,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node: [18, 20, 22, 24]
+        # Pull requests run every Node version on Linux and the oldest and newest on
+        # macOS and Windows, whose runners queue the longest. Pushes to main run the
+        # whole matrix, so a middle version that breaks on one OS is still caught.
+        exclude: ${{ github.event_name == 'pull_request' && fromJSON('[{"os":"macos-latest","node":20},{"os":"macos-latest","node":22},{"os":"windows-latest","node":20},{"os":"windows-latest","node":22}]') || fromJSON('[]') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,9 +84,6 @@ jobs:
   react-native:
     name: React Native Compatibility
     runs-on: ubuntu-latest
-    needs:
-      - lint
-      - test
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

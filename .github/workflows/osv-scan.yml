@@ -1,0 +1,52 @@
+name: osv-scan
+
+# Known-vulnerability scanning of the npm packages in package-lock.json against
+# the OSV database (https://osv.dev). The database changes every day, so a scan
+# that passed at merge time can fail tomorrow without a line of this repository
+# changing: the pull_request and push legs catch a newly added dependency, the
+# schedule catches a newly published advisory against the locked ones.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  osv-scan:
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+
+      # Pinned so a scanner release cannot change the verdict on its own. The
+      # advisory database is intentionally not pinned.
+      - name: Install osv-scanner
+        env:
+          GOTOOLCHAIN: auto
+        run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.1
+
+      # Advisories that have no fixed version and that this repository has
+      # shown it does not reach go in osv-scanner.toml as [[IgnoredVulns]],
+      # one ID each, with the reason and a date to revisit. Anything else
+      # fails the job.
+      - name: Scan
+        run: osv-scanner scan source -L package-lock.json
