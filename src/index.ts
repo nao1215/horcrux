@@ -6,8 +6,8 @@
  */
 
 // Core exports - Public API only
-export { splitFile, splitBuffer } from './core/split';
-export { bindFiles, autoBind } from './core/bind';
+export { splitFile, splitBuffer, saveHorcruxes } from './core/split';
+export { bindFiles, bindHorcruxes, autoBind } from './core/bind';
 
 // Type exports
 export type { SplitOptions, SplitResult, BindOptions, BindResult } from './core/horcrux';
