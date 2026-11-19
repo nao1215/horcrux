@@ -84,7 +84,7 @@ export async function autoBindDirectory(directory: string): Promise<BindResult> 
 }
 
 // Version information
-export const VERSION = '0.0.3';
+export const VERSION = '0.1.0';
 
 /**
  * Library metadata
