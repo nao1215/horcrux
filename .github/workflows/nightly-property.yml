@@ -1,0 +1,43 @@
+name: nightly-property
+
+# Every night the property tests in test/properties.test.ts run 100 times their
+# pull request count (HORCRUX_PROPERTY_RUNS=10000 instead of 100), the
+# TypeScript counterpart of the nightly fuzzing the Go repositories run. Each
+# run draws a new seed; a failure prints the seed, the path and the shrunk
+# input, so the case can be replayed with fc.assert(..., { seed, path }) and
+# kept as an example test.
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  property:
+    name: property tests x100
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Property tests at 10000 runs
+        env:
+          HORCRUX_PROPERTY_RUNS: "10000"
+        run: npx jest --runTestsByPath test/properties.test.ts
