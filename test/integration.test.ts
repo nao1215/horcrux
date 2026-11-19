@@ -326,6 +326,26 @@ describe('Horcrux Integration Tests', () => {
       expect(bindResult.filename).toBe(filename);
     });
 
+    // The header is JSON, which keeps these strings as they are, so a file
+    // marker can appear inside the header before the real one.
+    it.each(['a -- BODY -- b.txt', '-- HEADER --.txt', 'x -- HEADER -- y -- BODY --.txt'])(
+      'saves and loads a horcrux whose original filename is %j',
+      async (filename) => {
+        const data = Buffer.from('marker in the filename');
+        const splitResult = await splitBuffer(data, filename, { total: 2, threshold: 2 });
+        const savedPaths = await saveHorcruxes(splitResult.horcruxes, tempDir, nodeAdapter);
+
+        const loaded = [];
+        for (const savedPath of savedPaths) {
+          loaded.push(await loadHorcrux(savedPath, nodeAdapter));
+        }
+        const bindResult = await bindHorcruxes(loaded);
+
+        expect(bindResult.filename).toBe(filename);
+        expect(bindResult.data).toEqual(data);
+      }
+    );
+
     it('should preserve binary data integrity', async () => {
       // Create binary data with all byte values
       const binaryData = Buffer.alloc(256);

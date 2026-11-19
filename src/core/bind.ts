@@ -27,27 +27,29 @@ import type { PlatformAdapter } from '../interfaces/platform';
 export async function loadHorcrux(filepath: string, adapter: PlatformAdapter): Promise<Horcrux> {
   const content = await adapter.fs.readFile(filepath);
 
-  // Find header markers
-  const headerStart = content.indexOf(Buffer.from(HORCRUX_MAGIC));
+  // Each marker sits on a line of its own. The header is JSON, which escapes
+  // newlines inside strings, so a marker line cannot occur inside it even when
+  // the original filename contains the marker text.
+  const headerLine = Buffer.from(`\n${HORCRUX_MAGIC}\n`);
+  const bodyLine = Buffer.from(`\n${HORCRUX_BODY_MARKER}\n`);
+
+  const headerStart = content.indexOf(headerLine);
   if (headerStart === -1) {
     throw new Error('Invalid horcrux file: missing header marker');
   }
 
-  const bodyStart = content.indexOf(Buffer.from(HORCRUX_BODY_MARKER));
+  const headerJsonStart = headerStart + headerLine.length;
+  const bodyStart = content.indexOf(bodyLine, headerJsonStart);
   if (bodyStart === -1) {
     throw new Error('Invalid horcrux file: missing body marker');
   }
 
-  // Extract header JSON
-  const headerJsonStart = headerStart + HORCRUX_MAGIC.length + 1; // +1 for newline
-  const headerJson = content.slice(headerJsonStart, bodyStart).toString('utf-8').trim();
-
-  // Parse header
+  // Extract and parse the header JSON
+  const headerJson = content.subarray(headerJsonStart, bodyStart).toString('utf-8').trim();
   const header = deserializeHeader(headerJson);
 
   // Extract body content
-  const bodyContentStart = bodyStart + HORCRUX_BODY_MARKER.length + 1; // +1 for newline
-  const bodyContent = content.slice(bodyContentStart);
+  const bodyContent = content.subarray(bodyStart + bodyLine.length);
 
   return {
     header,
