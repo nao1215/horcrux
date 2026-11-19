@@ -155,19 +155,23 @@ Contributions are welcome! Please see the [Contributing Guide](./CONTRIBUTING.md
 
 ## Testing
 
+| Technique | Bug class caught here |
+|---|---|
+| [Examples and integration tests](./test/integration.test.ts) | Wrong results of split, bind and auto-bind on real files |
+| [Property-based tests](./test/properties.test.ts) | Secrets or files that do not come back from some subset of shares or horcruxes |
+| [Metamorphic relations](./test/properties.test.ts) | A file and the same bytes in a buffer laid out differently, results that depend on the order of the shards |
+| [Differential oracle](./test/properties.test.ts) | Log/exp table mistakes in GF(2^8), checked against bit-by-bit multiplication |
+| [Boundary values](./test/properties.test.ts) | Off-by-one limits of total and threshold (2, 99) and one shard fewer than the threshold |
+| [Package smoke test](./scripts/package_smoke.mjs) | A published package that Node cannot load, README imports that do not resolve |
+| [Mutation testing](./doc/testing.md#mutation-testing) | Assertions that miss changed logic |
+
 ```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# React Native adapter contract tests
-npm run test:react-native
-
-# Watch mode
-npm run test:watch
+npm test                 # all tests, properties at 100 runs
+npm run test:package     # pack, install and load the package
+HORCRUX_PROPERTY_RUNS=10000 npx jest test/properties.test.ts   # the nightly count
 ```
+
+[doc/testing.md](./doc/testing.md) describes each technique, the CI jobs that run it and the mutation score.
 
 ## Development
 

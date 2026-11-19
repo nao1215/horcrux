@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 /horcrux*
 /CLAUDE.md
+# Stryker (doc/testing.md)
+.stryker-tmp/
+reports/mutation/
