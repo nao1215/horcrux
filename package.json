@@ -4,6 +4,48 @@
   "description": "A TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./core/split": {
+      "types": "./dist/core/split.d.ts",
+      "default": "./dist/core/split.js"
+    },
+    "./core/bind": {
+      "types": "./dist/core/bind.d.ts",
+      "default": "./dist/core/bind.js"
+    },
+    "./adapters/node": {
+      "types": "./dist/adapters/node/index.d.ts",
+      "default": "./dist/adapters/node/index.js"
+    },
+    "./adapters/react-native": {
+      "types": "./dist/adapters/react-native/index.d.ts",
+      "default": "./dist/adapters/react-native/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "core/split": [
+        "dist/core/split.d.ts"
+      ],
+      "core/bind": [
+        "dist/core/bind.d.ts"
+      ],
+      "adapters/node": [
+        "dist/adapters/node/index.d.ts"
+      ],
+      "adapters/react-native": [
+        "dist/adapters/react-native/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -15,7 +57,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run test",
-    "test:react-native": "jest --runTestsByPath test/react-native-adapter.test.ts"
+    "test:react-native": "jest --runTestsByPath test/react-native-adapter.test.ts",
+    "test:package": "npm run clean && npm run build && node scripts/package_smoke.mjs"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

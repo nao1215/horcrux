@@ -34,8 +34,7 @@ npm install @nao1215/horcrux
 ## Quick Start
 
 ```typescript
-import { split, bind, nodeAdapter } from '@nao1215/horcrux';
-import { saveHorcruxes } from '@nao1215/horcrux/core/split';
+import { split, bind, saveHorcruxes, nodeAdapter } from '@nao1215/horcrux';
 
 // Split a file into 5 pieces, need 3 to restore
 const result = await split('secret.pdf', 5, 3);
@@ -77,8 +76,7 @@ await bind(['horcrux1.horcrux', 'horcrux2.horcrux', 'horcrux3.horcrux'], 'restor
 #### Buffer Operations
 
 ```typescript
-import { splitBuffer } from '@nao1215/horcrux';
-import { bindHorcruxes } from '@nao1215/horcrux/core/bind';
+import { splitBuffer, bindHorcruxes } from '@nao1215/horcrux';
 
 // Split in-memory data
 const data = Buffer.from('Secret message');

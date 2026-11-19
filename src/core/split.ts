@@ -4,8 +4,7 @@
  */
 
 import { split as shamirSplit } from './shamir/shamir';
-import { generateKey, createEncryptStream, encrypt } from './crypto/crypto';
-import { Demultiplexer } from './multiplexing';
+import { generateKey, encrypt } from './crypto/crypto';
 import {
   type Horcrux,
   type HorcruxHeader,
@@ -19,18 +18,15 @@ import {
   HORCRUX_BODY_MARKER
 } from './horcrux';
 import type { PlatformAdapter } from '../interfaces/platform';
-import { Writable, pipeline } from 'stream';
-import { promisify } from 'util';
-
-const pipelineAsync = promisify(pipeline);
 
 /**
  * Split a file into multiple horcrux shards as described in the Horcrux
  * specification. The content is encrypted with AES-256-OFB and the symmetric
  * key is dispersed using Shamir's Secret Sharing. When `threshold === total`
- * the payload is multiplexed across shards to minimise storage; otherwise the
- * encrypted payload is replicated so any `threshold` files can restore the
- * original.
+ * the cipher text is cut into consecutive chunks, one per shard, to minimise
+ * storage; otherwise the encrypted payload is replicated so any `threshold`
+ * files can restore the original. The shards are laid out exactly as
+ * {@link splitBuffer} lays them out for the same bytes.
  *
  * @param inputPath Absolute or adapter-relative path to the source file.
  * @param options Required split options including shard count and threshold.
@@ -54,50 +50,15 @@ export async function splitFile(
   // Extract filename (normalise Windows separators before splitting)
   const filename = inputPath.replace(/\\+/g, '/').split('/').pop() ?? inputPath;
 
-  // Generate encryption key
-  const key = generateKey();
-
-  // Split key using Shamir's Secret Sharing
-  const keyShares = shamirSplit(new Uint8Array(key), options.total, options.threshold);
-
-  // Create horcrux headers
-  const timestamp = Date.now();
-  const headers: HorcruxHeader[] = keyShares.map((share, index) => ({
-    originalFilename: filename,
-    timestamp,
-    index: index + 1,
-    total: options.total,
-    threshold: options.threshold,
-    keyFragment: share,
-    version: HORCRUX_VERSION
-  }));
-
-  // Encrypt and distribute file content
-  const horcruxes: Horcrux[] = [];
-
-  if (options.threshold === options.total) {
-    // Space-efficient mode: distribute encrypted content across horcruxes
-    horcruxes.push(...(await splitWithMultiplexing(inputPath, headers, key, adapter)));
-  } else {
-    // Redundant mode: copy encrypted content to all horcruxes
-    horcruxes.push(...(await splitWithReplication(inputPath, headers, key, adapter)));
-  }
-
-  // Calculate total size
-  const totalSize = horcruxes.reduce((sum, h) => sum + h.content.length, 0);
-
-  return {
-    horcruxes,
-    originalSize: stats.size,
-    totalSize
-  };
+  const data = await adapter.fs.readFile(inputPath);
+  return splitData(data, filename, options);
 }
 
 /**
  * In-memory variant of {@link splitFile} for callers that already hold the
  * payload in a buffer (for example when streaming uploads). Behaviour matches
- * the file-based API, including encryption, key sharing and multiplex versus
- * replication logic.
+ * the file-based API, including encryption, key sharing and the distributed
+ * versus replicated layout.
  *
  * @param data Raw bytes to be protected.
  * @param filename Logical filename recorded in the horcrux headers.
@@ -113,6 +74,15 @@ export async function splitBuffer(
   // Validate options
   validateSplitOptions(options);
 
+  return splitData(data, filename, options);
+}
+
+/**
+ * Encrypt `data`, split the key and lay the cipher text out over the shards.
+ * bindHorcruxes concatenates the shards of the distributed layout in index
+ * order, so each shard holds one consecutive chunk of the cipher text.
+ */
+function splitData(data: Buffer, filename: string, options: SplitOptions): SplitResult {
   // Generate encryption key
   const key = generateKey();
 
@@ -144,11 +114,11 @@ export async function splitBuffer(
     for (let i = 0; i < headers.length; i++) {
       const start = i * chunkSize;
       const end = Math.min((i + 1) * chunkSize, encryptedData.length);
-      const content = encryptedData.slice(start, end);
+      const content = encryptedData.subarray(start, end);
 
       horcruxes.push({
         header: headers[i],
-        content
+        content: Buffer.from(content)
       });
     }
   } else {
@@ -169,64 +139,6 @@ export async function splitBuffer(
     originalSize: data.length,
     totalSize
   };
-}
-
-/**
- * Split with multiplexing (threshold === total)
- */
-async function splitWithMultiplexing(
-  inputPath: string,
-  headers: HorcruxHeader[],
-  key: Buffer,
-  adapter: PlatformAdapter
-): Promise<Horcrux[]> {
-  const inputStream = await adapter.fs.createReadStream(inputPath);
-  const encryptStream = createEncryptStream(key);
-
-  // Create memory buffers for each horcrux content
-  const contentBuffers: Buffer[][] = headers.map(() => []);
-
-  // Create writable streams for each horcrux
-  const outputStreams = headers.map((_, index) => {
-    return new Writable({
-      write(chunk: Buffer, _encoding, callback): void {
-        contentBuffers[index].push(chunk);
-        callback();
-      }
-    });
-  });
-
-  // Create demultiplexer
-  const demux = Demultiplexer.createTransform(outputStreams);
-
-  // Pipeline: input -> encrypt -> demultiplex -> outputs
-  await pipelineAsync(inputStream, encryptStream, demux);
-
-  // Create horcruxes with collected content
-  return headers.map((header, index) => ({
-    header,
-    content: Buffer.concat(contentBuffers[index])
-  }));
-}
-
-/**
- * Split with replication (threshold < total)
- */
-async function splitWithReplication(
-  inputPath: string,
-  headers: HorcruxHeader[],
-  key: Buffer,
-  adapter: PlatformAdapter
-): Promise<Horcrux[]> {
-  // Read and encrypt entire file
-  const inputData = await adapter.fs.readFile(inputPath);
-  const encryptedData = encrypt(inputData, key);
-
-  // Create horcruxes with replicated content
-  return headers.map((header) => ({
-    header,
-    content: Buffer.from(encryptedData)
-  }));
 }
 
 /**
