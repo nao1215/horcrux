@@ -2,8 +2,14 @@
 
 ![logo](./doc/img/horcrux-small.png)
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/horcrux/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/horcrux)
+[![CI](https://github.com/nao1215/horcrux/actions/workflows/ci.yml/badge.svg)](https://github.com/nao1215/horcrux/actions/workflows/ci.yml)
+[![Gitleaks](https://github.com/nao1215/horcrux/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/nao1215/horcrux/actions/workflows/gitleaks.yml)
 [![Trivy](https://github.com/nao1215/horcrux/actions/workflows/trivy.yml/badge.svg)](https://github.com/nao1215/horcrux/actions/workflows/trivy.yml)
+[![OSV-Scanner](https://github.com/nao1215/horcrux/actions/workflows/osv-scan.yml/badge.svg)](https://github.com/nao1215/horcrux/actions/workflows/osv-scan.yml)
+[![npm](https://img.shields.io/npm/v/@nao1215/horcrux)](https://www.npmjs.com/package/@nao1215/horcrux)
+[![npm Downloads](https://img.shields.io/npm/dt/@nao1215/horcrux)](https://www.npmjs.com/package/@nao1215/horcrux)
+[![License](https://img.shields.io/github/license/nao1215/horcrux)](./LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/horcrux/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/horcrux)
 
 Horcrux is TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter. Split your files into multiple pieces where only a subset is needed to restore the original - no password required!!
 
@@ -183,7 +189,7 @@ npm run typecheck
 
 ## License
 
-[MIT LICENCE](./LICENSE)
+[MIT License](./LICENSE)
 
 ## Acknowledgments
 
