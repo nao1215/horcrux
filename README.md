@@ -114,12 +114,10 @@ const result = await autoBind('./horcrux_directory', nodeAdapter);
 
 ## Platform support
 
-On Node.js, horcrux uses the built-in `crypto` and `fs` modules and needs no setup. React Native needs one of these pairs of packages:
+On Node.js, horcrux uses the built-in `crypto` and `fs` modules and needs no setup. On React Native, the adapter needs a file system module with the `react-native-fs` API and a crypto module with Node-compatible `randomBytes`, `createCipheriv` and `createDecipheriv`, such as `react-native-crypto`:
 
 ```bash
 npm install react-native-fs react-native-crypto
-# or
-npm install expo-crypto expo-file-system
 ```
 
 Then pass them to horcrux:
