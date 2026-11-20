@@ -191,13 +191,39 @@ describe('Shamir Secret Sharing', () => {
       const shares1 = split(secret1, 3, 2);
       const shares2 = split(secret2, 3, 2);
 
-      // Mix shares from different splits
-      const mixed = [shares1[0], shares2[1]];
+      // Mix shares from different splits. The two splits draw their
+      // x-coordinates independently, so pick a share from the second split
+      // whose x differs from the first; two shares with the same x cannot be
+      // interpolated (see the duplicate x-coordinate test below).
+      const other = shares2.find(share => share.x !== shares1[0].x);
+      if (other === undefined) {
+        throw new Error('split returned duplicate x-coordinates');
+      }
+      const mixed = [shares1[0], other];
       const recovered = combine(mixed);
 
       // Should not equal either original secret
       expect(Buffer.from(recovered)).not.toEqual(secret1);
       expect(Buffer.from(recovered)).not.toEqual(secret2);
+    });
+
+    it('should reject shares that share an x-coordinate', () => {
+      // Two shares from different splits can land on the same x, which used
+      // to surface as "Division by zero" from the Lagrange denominator.
+      const shares1 = split(crypto.randomBytes(16), 3, 2);
+      const shares2 = split(crypto.randomBytes(16), 3, 2);
+      const clash = { x: shares1[0].x, y: shares2[1].y };
+
+      expect(() => combine([shares1[0], clash])).toThrow(
+        `Duplicate share x-coordinate: ${shares1[0].x}`
+      );
+    });
+
+    it('should reject the same share passed twice', () => {
+      const shares = split(crypto.randomBytes(16), 3, 2);
+
+      expect(() => combine([shares[0], shares[0]])).toThrow(/Duplicate share x-coordinate/);
+      expect(verify([shares[0], shares[0]], 2)).toBe(false);
     });
   });
 });
