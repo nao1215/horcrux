@@ -151,8 +151,10 @@ export function split(secret: Uint8Array, parts: number, threshold: number): Sha
  * Lagrange interpolation at x=0 to recover the constant term of the random
  * polynomial that was used in {@link split}.
  *
- * @param shares Array of shares to combine.
+ * @param shares Array of shares to combine. Each share must have a distinct
+ * x-coordinate.
  * @returns The reconstructed secret with the original length.
+ * @throws If two shares have the same x-coordinate.
  */
 export function combine(shares: Share[]): Uint8Array {
   if (shares.length === 0) {
@@ -161,11 +163,18 @@ export function combine(shares: Share[]): Uint8Array {
 
   const secretLength = shares[0].y.length;
 
-  // Verify all shares have the same length
+  // Verify all shares have the same length and distinct x-coordinates.
+  // Lagrange interpolation divides by (x_i XOR x_j), so a repeated x would
+  // otherwise fail deep inside the field arithmetic as a division by zero.
+  const seenX = new Set<number>();
   for (const share of shares) {
     if (share.y.length !== secretLength) {
       throw new Error('All shares must have the same length');
     }
+    if (seenX.has(share.x)) {
+      throw new Error(`Duplicate share x-coordinate: ${share.x}`);
+    }
+    seenX.add(share.x);
   }
 
   const secret = new Uint8Array(secretLength);
