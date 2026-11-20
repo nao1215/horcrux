@@ -11,17 +11,9 @@
 [![License](https://img.shields.io/github/license/nao1215/horcrux)](./LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/horcrux/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/horcrux)
 
-Horcrux is TypeScript library for splitting files into encrypted fragments (horcruxes) inspired by Harry Potter. Split your files into multiple pieces where only a subset is needed to restore the original - no password required!!
+Horcrux is a TypeScript library, named after the horcruxes in Harry Potter, that splits a file into encrypted fragments. You choose how many fragments to make and how many are needed to restore the file, and no password is involved. It runs on Node.js and React Native.
 
-If you have a file you want to keep secret, you can split it with Horcrux and hide the horcruxes so that only you can restore the original file. Horcrux works on both Node.js and React Native platforms.
-
-## Features
-
-- **With Encryption**: AES-256-OFB encryption for data protection
-- **Shamir's Secret Sharing**: Split encryption keys using mathematical secret sharing
-- **Flexible Thresholds**: Choose how many pieces are needed for restoration
-- **Cross-Platform**: Works with Node.js and React Native
-- **No Password Needed**: Keys are split across horcruxes
+The file is encrypted with AES-256-OFB, and the key is split with Shamir's Secret Sharing, so each fragment carries a share of the key. Hide the fragments in different places, and only someone who collects enough of them can restore the original.
 
 ![example](./doc/img/horcrux_example.jpg)
 
@@ -31,7 +23,7 @@ If you have a file you want to keep secret, you can split it with Horcrux and hi
 npm install @nao1215/horcrux
 ```
 
-## Quick Start
+## Quick start
 
 ```typescript
 import { split, bind, saveHorcruxes, nodeAdapter } from '@nao1215/horcrux';
@@ -46,18 +38,26 @@ const files = await saveHorcruxes(result.horcruxes, './output', nodeAdapter);
 await bind(files.slice(0, 3), 'restored_secret.pdf');
 ```
 
+`./output` then holds five files, and any three of them restore `restored_secret.pdf` byte for byte:
 
-### Two Modes
+```console
+$ ls output
+secret_1_of_5.horcrux
+secret_2_of_5.horcrux
+secret_3_of_5.horcrux
+secret_4_of_5.horcrux
+secret_5_of_5.horcrux
+```
 
-- **Redundant Mode** (threshold < total): Each horcrux contains the full encrypted file
-- **Space-Efficient Mode** (threshold = total): Encrypted data is distributed across horcruxes
+When the threshold is lower than the total, each horcrux holds the full encrypted file. When the threshold equals the total, the encrypted data is divided across the horcruxes, which saves space.
 
-## API Documentation
+## API
 
-### Basic Functions
+### Basic functions
 
 #### `split(inputPath, total, threshold)`
-Split a file into horcruxes.
+
+Splits a file into horcruxes.
 
 ```typescript
 const result = await split('document.pdf', 5, 3);
@@ -65,15 +65,16 @@ const result = await split('document.pdf', 5, 3);
 ```
 
 #### `bind(horcruxPaths, outputPath)`
-Restore a file from horcruxes.
+
+Restores a file from horcruxes.
 
 ```typescript
 await bind(['horcrux1.horcrux', 'horcrux2.horcrux', 'horcrux3.horcrux'], 'restored.pdf');
 ```
 
-### Advanced Usage
+### Advanced usage
 
-#### Buffer Operations
+#### Buffers
 
 ```typescript
 import { splitBuffer, bindHorcruxes } from '@nao1215/horcrux';
@@ -90,7 +91,7 @@ const restored = await bindHorcruxes(result.horcruxes.slice(0, 2));
 console.log(restored.data.toString()); // 'Secret message'
 ```
 
-#### Custom Platform Adapters
+#### Platform adapters
 
 ```typescript
 import { splitFile, nodeAdapter } from '@nao1215/horcrux';
@@ -102,7 +103,7 @@ const result = await splitFile('file.txt', {
 }, nodeAdapter);
 ```
 
-#### Auto-Discovery
+#### Finding horcruxes in a directory
 
 ```typescript
 import { autoBind, nodeAdapter } from '@nao1215/horcrux';
@@ -111,21 +112,15 @@ import { autoBind, nodeAdapter } from '@nao1215/horcrux';
 const result = await autoBind('./horcrux_directory', nodeAdapter);
 ```
 
-## Platform Support
+## Platform support
 
-### Node.js
-Full support out of the box using native `crypto` and `fs` modules.
-
-### React Native
-Requires additional setup:
+On Node.js, horcrux uses the built-in `crypto` and `fs` modules and needs no setup. On React Native, the adapter needs a file system module with the `react-native-fs` API and a crypto module with Node-compatible `randomBytes`, `createCipheriv` and `createDecipheriv`, such as `react-native-crypto`:
 
 ```bash
 npm install react-native-fs react-native-crypto
-# or
-npm install expo-crypto expo-file-system
 ```
 
-Then configure:
+Then pass them to horcrux:
 
 ```typescript
 import { configureReactNative } from '@nao1215/horcrux/adapters/react-native';
@@ -135,23 +130,20 @@ import Crypto from 'react-native-crypto';
 configureReactNative(RNFS, Crypto);
 ```
 
-## Security Considerations
+## Security notes
 
 - Keys are generated using cryptographically secure random number generators
 - Each horcrux includes metadata (filename, timestamp) in plaintext
 - The encryption uses AES-256 in OFB mode with a zero IV
 - Horcruxes from different split operations cannot be mixed
 
-## Use Cases
+## Use cases
 
-- **Long-term Storage**: Store files without worrying about forgetting passwords
-- **Distributed Backup**: Store horcruxes across multiple locations/services
-- **Secure Sharing**: Share files where multiple parties must cooperate to access
-- **Secret file**: Create a file that can only be viewed by following a specific procedure
+Horcrux suits long-term storage where you might forget a password, backups spread across several locations or services, and files that several people must agree to open together.
 
 ## Contributing
 
-Contributions are welcome! Please see the [Contributing Guide](./CONTRIBUTING.md) for more details.
+Contributions are welcome. See the [Contributing Guide](./CONTRIBUTING.md).
 
 ## Testing
 
@@ -195,6 +187,4 @@ npm run typecheck
 
 ## Acknowledgments
 
-Inspired by:
-- J.K. Rowling's Harry Potter series
-- The [horcrux CLI tool written in Go](https://github.com/jesseduffield/horcrux)
+Inspired by J.K. Rowling's Harry Potter series and the [horcrux CLI tool written in Go](https://github.com/jesseduffield/horcrux).
